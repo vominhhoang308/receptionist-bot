@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <style>
+    #demo{
+      margin-top:70px;
+      margin-left:320px;
+    }
+
+    #opts{
+      margin-left:300px;
+      margin-top:100px;
+    }
+
+    #circle_ini{
+      position:relative;
+    }
+
+    </style>
+
+    <!-- add css external files-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/d3.floorplan.css" media="screen">
+
+    <!-- add js external files -->
+    <script src="http://d3js.org/d3.v3.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script src="js/d3.floorplan.min.js" type="text/javascript"></script>
+    <script src="js/floorplan.js" type="text/javascript"></script>
+    <script src="js/heatmap.js" type="text/javascript"></script>
+    <script src="js/imagelayer.js" type="text/javascript"></script>
+    <script src="js/overlays.js" type="text/javascript"></script>
+    <script src="js/pathplot.js" type="text/javascript"></script>
+    <script src="js/vectorfield.js" type="text/javascript"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  </head>
+  <body>
+  <div class="container">
+    <div class="jumbotron">
+      <h1>Office map</h1> 
+    </div>
+  </div>
+   <select id = "opts">
+        <option value="1stfloor" selected="selected">1st floor indoor map</option>
+        <option value="2ndfloor">2nd floor indoor map</option>
+      </select>
+    <div id="demo"> </div>
+    <script type="text/javascript">
+
+        var xscale = d3.scale.linear()
+                   .domain([0,50.0])
+                   .range([0,720]),
+        yscale = d3.scale.linear()
+                   .domain([0,63.79])
+                   .range([0,487]),
+        map = d3.floorplan().xScale(xscale).yScale(yscale),
+        imagelayer = d3.floorplan.imagelayer(),
+        heatmap = d3.floorplan.heatmap(),
+        vectorfield = d3.floorplan.vectorfield(),
+        pathplot = d3.floorplan.pathplot(),
+        overlays = d3.floorplan.overlays().editMode(true),
+        mapdata = {};
+
+
+    function drawmapfirstfloor(){
+
+      mapdata[imagelayer.id()] = [{
+        url: "imgs/1stfloormap.jpg",
+        x: 0,
+        y: 0,
+        height: 63.79,
+        width: 50.0
+         }];
+      map.addLayer(imagelayer)
+          .addLayer(pathplot)
+
+      var tooltip_ini = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("z-index", "25")
+        .style("visibility", "hidden")
+        .style("background", "lightsteelblue")
+        .style("padding", "10px")      
+        .style("border-radius", "8px")
+        .text("You are here!")
+        .style("font-size", "15px")
+        .style("font-weight", "bold")
+
+      var tooltip_end = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("z-index", "25")
+        .style("visibility", "hidden")
+        .style("background", "lightsteelblue")
+        .style("padding", "10px")      
+        .style("border-radius", "8px")
+        .text("Room meeting!")
+        .style("font-size", "15px")
+        .style("font-weight", "bold");
+
+      d3.json("data/demo-data.json", function(data) {
+
+        mapdata[heatmap.id()] = data.heatmap;
+        mapdata[overlays.id()] = data.overlays;
+        mapdata[vectorfield.id()] = data.vectorfield;
+        mapdata[pathplot.id()] = data.pathplot;
+
+        console.log(data.pathplot)
+        
+       var svgcontainer = d3.select("#demo").append("svg")
+          .attr("height", 487).attr("width",720)
+          .datum(mapdata).call(map);
+
+      var circle_ini = svgcontainer.append("circle")
+                         .attr("cx", 220)
+                         .attr("cy", 420)
+                         .attr("r", 15)
+                         .attr("fill", "#DC143C")
+                         .on("mouseover", function(){return tooltip_ini.style("visibility", "visible");})
+                         .on("mousemove", function(){return tooltip_ini.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+                        .on("mouseout", function(){return tooltip_ini.style("visibility", "visible");});  
+
+      var circle_end = svgcontainer.append("circle")
+                         .attr("cx", 410)
+                         .attr("cy", 70)
+                         .attr("r", 15)
+                         .attr("fill", "#6495ED")
+                         .on("mouseover", function(){return tooltip_end.style("visibility", "visible");})
+                         .on("mousemove", function(){return tooltip_end.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+                        .on("mouseout", function(){return tooltip_end.style("visibility", "visible");}); 
+
+      var svg = svgcontainer
+              .append("line")
+              .style("stroke", "#3CB371")  // colour the line
+              .style("stroke-width", 3)
+              .attr("x1", 220)
+              .attr("y1", 420)
+              .attr("x2", 410)
+              .attr("y2", 70);
+      });
+
+    }
+
+    function drawmapsecondfloor(){
+
+      mapdata[imagelayer.id()] = [{
+        url: "imgs/2ndfloormap.jpg",
+        x: 0,
+        y: 0,
+        height: 63.79,
+        width: 50.0
+         }];
+      map.addLayer(imagelayer)
+
+            d3.json("data/demo-data.json", function(data) {
+
+        mapdata[heatmap.id()] = data.heatmap;
+        mapdata[overlays.id()] = data.overlays;
+        mapdata[vectorfield.id()] = data.vectorfield;
+        mapdata[pathplot.id()] = data.pathplot;
+        
+       var svgcontainer = d3.select("#demo").append("svg")
+          .attr("height", 487).attr("width",720)
+          .datum(mapdata).call(map);
+
+     });
+    }
+
+    drawmapfirstfloor();
+
+    d3.selectAll("#opts")
+        .on('change', function() {
+        var ID = d3.select(this).property('value');
+        if (ID == "1stfloor"){
+          d3.select("svg").remove();
+          drawmapfirstfloor()
+        }
+        else if (ID == "2ndfloor"){
+          d3.select("svg").remove();
+          drawmapsecondfloor()
+        }
+                         
+      });
+
+    </script>
+  </body>
+</html>
